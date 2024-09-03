@@ -98,6 +98,7 @@ class SCDiscoverFeedLoadingViewCellHook: ClassHook<UIView> {
   }
 }
 
+//Utility function to set `allowedDirections` for a page's view controller.
 func setSwipeDirection(forController controller: UIViewController, direction: Int) {
   if let parentVC = controller.parent {
     NSLog("SBTWEAK: parentVC \(parentVC)")
@@ -131,6 +132,7 @@ func setSwipeDirection(forController controller: UIViewController, direction: In
 
 }
 
+//Only allow swiping left on Stories page.
 class SCDiscoverFeedContainerViewControllerHook: ClassHook<UIViewController> {
   static let targetName = "SCDiscoverFeedContainerViewController"
 
@@ -140,6 +142,7 @@ class SCDiscoverFeedContainerViewControllerHook: ClassHook<UIViewController> {
   }
 }
 
+//Only allow swiping right on Friends page.
 class SCFriendsFeedViewControllerHook: ClassHook<UIViewController> {
   static let targetName = "SCFriendsFeedViewController"
 
@@ -149,10 +152,12 @@ class SCFriendsFeedViewControllerHook: ClassHook<UIViewController> {
   }
 }
 
+//Hide Explore Lenses button.
 class SCLensExplorerAboveMiniCarouselButtonImplHook: ClassHook<UIView> {
   static let targetName = "SCLensExplorerAboveMiniCarouselButtonImpl"
 
   func layoutSubviews() {
+    NSLog("SBTWEAK: hiding lens button")
     target.isHidden = true
   }
 }
