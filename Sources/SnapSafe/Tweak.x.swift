@@ -149,6 +149,37 @@ class SCFriendsFeedViewControllerHook: ClassHook<UIViewController> {
   }
 }
 
+class SCLensExplorerAboveMiniCarouselButtonImplHook: ClassHook<UIView> {
+  static let targetName = "SCLensExplorerAboveMiniCarouselButtonImpl"
+
+  func layoutSubviews() {
+    target.isHidden = true
+  }
+}
+
+//Make Explore button open Add Friends page instead.
+class SCHeaderButtonProviderHook: ClassHook<NSObject> {
+  static let targetName = "SCHeaderButtonProvider"
+
+  //When the Explore button is tapped, don't run the original tap handeler, and instead run the handeler for the Add Friends button.
+  func didTapSearchHeaderButton(_ id: NSObject) {
+    let selector = NSSelectorFromString("didTapAddFriendsHeaderButton:")
+
+    if target.responds(to: selector) {
+      let objcMethod = class_getInstanceMethod(type(of: target), selector)
+
+      if objcMethod != nil {
+        let objc_msgSend = class_getMethodImplementation(type(of: target), selector)
+
+        typealias objc_msgSend_t = @convention(c) (AnyObject, Selector, NSObject?) -> Void
+        let msgSend = unsafeBitCast(objc_msgSend, to: objc_msgSend_t.self)
+
+        _ = msgSend(target, selector, nil)
+      }
+    }
+  }
+}
+
 //Hide some tabs.
 class SIGNavigationBarViewHook: ClassHook<UIView> {
   static let targetName = "SIGNavigationBarView"
