@@ -80,11 +80,20 @@ class SCOperaPageViewControllerHook: ClassHook<UIViewController> {
 }
 
 //Disable discover stories section.
-class SCDiscoveryFeedDataStore: ClassHook<NSObject> {
+class SCDiscoverFeedSectionExtensionServicesHook: ClassHook<NSObject> {
   static let targetName = "SCDiscoverFeedSectionExtensionServices"
 
+  //This somehow hides the discover section.
   func remoteSectionProviders() -> NSDictionary {
     return [:]
+  }
+}
+
+class SCDiscoverFeedLoadingViewCellHook: ClassHook<UIView> {
+  static let targetName = "SCDiscoverFeedLoadingViewCell"
+
+  func layoutSubviews() {
+    target.isHidden = true
   }
 }
 
