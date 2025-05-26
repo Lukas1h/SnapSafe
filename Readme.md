@@ -13,5 +13,3 @@ _Hide unwanted content from Snapchat._
 ### Why
 
 Snapchat is a awesome app, but there's plenty of content in it that I'd rather not see.
-
-This tweak is great for kid's expecialy.
