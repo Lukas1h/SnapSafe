@@ -2,6 +2,147 @@ import Orion
 import SnapSafeC
 import UIKit
 
+//Hide some tabs.
+class SIGNavigationBarViewHook: ClassHook<UIView> {
+  static let targetName = "SIGNavigationBarView"
+
+  @Property(.nonatomic) var mapTab: UIView! = nil
+  @Property(.nonatomic) var friendsTab: UIView! = nil
+  @Property(.nonatomic) var cameraTab: UIView! = nil
+  @Property(.nonatomic) var storiesTab: UIView! = nil
+  @Property(.nonatomic) var spotlightTab: UIView! = nil
+
+  func didMoveToSuperview() {
+    orig.didMoveToSuperview()
+
+    let container = target.subviews[0]
+
+    mapTab = container.subviews[1]
+    friendsTab = container.subviews[2]
+    cameraTab = container.subviews[3]
+    storiesTab = container.subviews[4]
+    spotlightTab = container.subviews[5]
+
+    //Hide tabs.
+    if let mapTab,
+       let storiesTab,
+       let spotlightTab 
+    {
+      mapTab.isHidden = true 
+      storiesTab.isHidden = true 
+      spotlightTab.isHidden = true
+    }
+
+  }
+
+
+  func layoutSubviews() {
+    orig.layoutSubviews()
+
+    //Hide tabs.
+    if let friendsTab,
+       let cameraTab
+    {
+      let scale: CGFloat = 1.2
+      friendsTab.transform = CGAffineTransform.identity
+      cameraTab.transform = CGAffineTransform.identity
+
+      // Calculate the scaled width
+      let originalTabWidth = friendsTab.frame.width
+      let scaledTabWidth = originalTabWidth * scale
+      let totalTabs = 2
+      let totalWidth = CGFloat(totalTabs) * scaledTabWidth
+      let screenWidth = UIScreen.main.bounds.width
+      let startX = (screenWidth - totalWidth) / 2
+      let padding:CGFloat = 10
+
+      // Set frames before applying transform to avoid transform affecting frame.origin
+      friendsTab.frame.origin.x = startX
+      cameraTab.frame.origin.x = startX + scaledTabWidth + padding
+
+      // Now apply the scaling transform
+      friendsTab.transform = CGAffineTransform(scaleX: scale, y: scale)
+      cameraTab.transform = CGAffineTransform(scaleX: scale, y: scale)
+    }
+  }
+}
+
+//Disable swiping on camera page.
+class SCSwipeContainerSwipeViewControllerHook: ClassHook<UIViewController> {
+  static let targetName = "SCSwipeViewContainerViewController"
+  func allowedDirections() -> Int {
+    return 0
+  }
+}
+
+//Disable swiping on Friends page.
+class SCFriendsFeedViewControllerHook: ClassHook<UIViewController> {
+  static let targetName = "SCFriendsFeedViewController"
+
+  func viewDidLoad() {
+    orig.viewDidLoad()
+    setSwipeDirection(forController: target, direction: 0)
+  }
+}
+
+//Hide Explore Lenses button.
+class SCLensExplorerAboveMiniCarouselButtonImplHook: ClassHook<UIView> {
+  static let targetName = "SCLensExplorerAboveMiniCarouselButtonImpl"
+
+  func layoutSubviews() {
+    NSLog("SBTWEAK: hiding lens button")
+    target.isHidden = true
+  }
+}
+
+//Make Explore button open Add Friends page instead.
+class SCHeaderButtonProviderHook: ClassHook<NSObject> {
+  static let targetName = "SCHeaderButtonProvider"
+
+  //When the Explore button is tapped, don't run the original tap handeler, and instead call the handeler for the Add Friends button.
+  func didTapSearchHeaderButton(_ id: NSObject) {
+    let selector = NSSelectorFromString("didTapAddFriendsHeaderButton:")
+
+    if target.responds(to: selector) {
+      let objcMethod = class_getInstanceMethod(type(of: target), selector)
+
+      if objcMethod != nil {
+        let objc_msgSend = class_getMethodImplementation(type(of: target), selector)
+
+        typealias objc_msgSend_t = @convention(c) (AnyObject, Selector, NSObject?) -> Void
+        let msgSend = unsafeBitCast(objc_msgSend, to: objc_msgSend_t.self)
+
+        _ = msgSend(target, selector, nil)
+      }
+    }
+  }
+}
+
+// Hide friends suggestions.
+class SCConversationFeedDataSourceHook: ClassHook<NSObject> {
+  // Lord I'm asking that this doesn't get me banned
+  // and that you would bless me as I try to honor
+  // you with what I see and do.
+
+  static let targetName = "SCConversationFeedDataSource"
+
+  func quickAddSnapchatters() -> NSArray {
+    return []
+  }
+
+  func incomingSnapchatters() -> NSArray {
+    return []
+  }
+
+  func contactSnapchatters() -> NSArray {
+    return []
+  }
+
+  func contactNonSnapchatters() -> NSArray {
+    return []
+  }
+}
+
 //Prevent discover stories from showing after friend stories.
 class SCOperaPageViewControllerHook: ClassHook<UIViewController> {
   static let targetName = "SCOperaPageViewController"
@@ -79,16 +220,6 @@ class SCOperaPageViewControllerHook: ClassHook<UIViewController> {
   }
 }
 
-//Disable discover stories section.
-class SCDiscoverFeedSectionExtensionServicesHook: ClassHook<NSObject> {
-  static let targetName = "SCDiscoverFeedSectionExtensionServices"
-
-  //This somehow hides the discover section.
-  func remoteSectionProviders() -> NSDictionary {
-    return [:]
-  }
-}
-
 //Hide spinner for discover stories section.
 class SCDiscoverFeedLoadingViewCellHook: ClassHook<UIView> {
   static let targetName = "SCDiscoverFeedLoadingViewCell"
@@ -98,104 +229,47 @@ class SCDiscoverFeedLoadingViewCellHook: ClassHook<UIView> {
   }
 }
 
-//Utility function to set `allowedDirections` for a page's view controller.
-func setSwipeDirection(forController controller: UIViewController, direction: Int) {
-  if let parentVC = controller.parent {
-    NSLog("SBTWEAK: parentVC \(parentVC)")
 
-    let selector = NSSelectorFromString("setAllowedDirections:")
 
-    if parentVC.responds(to: selector) {
-      NSLog("SBTWErAK: Responds")
 
-      let objcMethod = class_getInstanceMethod(type(of: parentVC), selector)
 
-      if objcMethod != nil {
-        NSLog("SBTWErAK: bout to send")
 
-        let objc_msgSend = class_getMethodImplementation(type(of: parentVC), selector)
+// ====== Commented out because it might ban the user ======
+//Disable discover stories section.
+// class SCDiscoverFeedSectionExtensionServicesHook: ClassHook<NSObject> {
+//   static let targetName = "SCDiscoverFeedSectionExtensionServices"
 
-        typealias objc_msgSend_t = @convention(c) (AnyObject, Selector, Int) -> Void
-        let msgSend = unsafeBitCast(objc_msgSend, to: objc_msgSend_t.self)
+//   //This somehow hides the discover section.
+//   func remoteSectionProviders() -> NSDictionary {
+//     return [:]
+//   }
+// }
 
-        _ = msgSend(parentVC, selector, direction)
-      }
-    } else {
-      NSLog(
-        "SBTWEAK: Parent view controller does not respond to navigationManagerShouldDismiss")
-    }
 
-  } else {
-    NSLog("SBTWEAK: Couldn't get parentvc")
+// //Only allow swiping right on Friends page.
+// class SCFriendsFeedViewControllerHook: ClassHook<UIViewController> {
+//   static let targetName = "SCFriendsFeedViewController"
 
-  }
+//   func viewDidLoad() {
+//     orig.viewDidLoad()
+//     setSwipeDirection(forController: target, direction: 0)
+//   }
+// }
 
-}
 
-//Only allow swiping left on Stories page.
-class SCDiscoverFeedContainerViewControllerHook: ClassHook<UIViewController> {
-  static let targetName = "SCDiscoverFeedContainerViewController"
 
-  func viewDidLoad() {
-    orig.viewDidLoad()
-    setSwipeDirection(forController: target, direction: 2)
-  }
-}
 
-//Only allow swiping right on Friends page.
-class SCFriendsFeedViewControllerHook: ClassHook<UIViewController> {
-  static let targetName = "SCFriendsFeedViewController"
+// //Only allow swiping left on Stories page.
+// class SCDiscoverFeedContainerViewControllerHook: ClassHook<UIViewController> {
+//   // static let targetName = "SCDiscoverFeedContainerViewController"
+//     static let targetName = "SCSwipeViewConntainerViewController"
 
-  func viewDidLoad() {
-    orig.viewDidLoad()
-    setSwipeDirection(forController: target, direction: 1)
-  }
-}
+//   func viewDidLoad() {
+//     orig.viewDidLoad()
+//     setSwipeDirection(forController: target, direction: 2)
+//   }
+// }
 
-//Hide Explore Lenses button.
-class SCLensExplorerAboveMiniCarouselButtonImplHook: ClassHook<UIView> {
-  static let targetName = "SCLensExplorerAboveMiniCarouselButtonImpl"
-
-  func layoutSubviews() {
-    NSLog("SBTWEAK: hiding lens button")
-    target.isHidden = true
-  }
-}
-
-//Make Explore button open Add Friends page instead.
-class SCHeaderButtonProviderHook: ClassHook<NSObject> {
-  static let targetName = "SCHeaderButtonProvider"
-
-  //When the Explore button is tapped, don't run the original tap handeler, and instead run the handeler for the Add Friends button.
-  func didTapSearchHeaderButton(_ id: NSObject) {
-    let selector = NSSelectorFromString("didTapAddFriendsHeaderButton:")
-
-    if target.responds(to: selector) {
-      let objcMethod = class_getInstanceMethod(type(of: target), selector)
-
-      if objcMethod != nil {
-        let objc_msgSend = class_getMethodImplementation(type(of: target), selector)
-
-        typealias objc_msgSend_t = @convention(c) (AnyObject, Selector, NSObject?) -> Void
-        let msgSend = unsafeBitCast(objc_msgSend, to: objc_msgSend_t.self)
-
-        _ = msgSend(target, selector, nil)
-      }
-    }
-  }
-}
-
-//Hide some tabs.
-class SIGNavigationBarViewHook: ClassHook<UIView> {
-  static let targetName = "SIGNavigationBarView"
-
-  func didMoveToSuperview() {
-    orig.didMoveToSuperview()
-
-    target.subviews[0].subviews[1].isHidden = true  //Hide map tab.
-    target.subviews[0].subviews[5].isHidden = true  //Hide spotlight tab.
-  }
-}
 
 // class SCDiscoverFeedViewControllerHook: ClassHook<UIViewController> {
 //   static let targetName = "SCDiscoverFeedViewController"
