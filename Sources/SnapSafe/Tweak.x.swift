@@ -2,6 +2,10 @@ import Orion
 import SnapSafeC
 import UIKit
 
+
+//Commented out some stuff because it got me banned for one week, then one month....
+
+
 //Hide some tabs.
 class SIGNavigationBarViewHook: ClassHook<UIView> {
   static let targetName = "SIGNavigationBarView"
@@ -95,130 +99,130 @@ class SCLensExplorerAboveMiniCarouselButtonImplHook: ClassHook<UIView> {
   }
 }
 
-//Make Explore button open Add Friends page instead.
-class SCHeaderButtonProviderHook: ClassHook<NSObject> {
-  static let targetName = "SCHeaderButtonProvider"
+// //Make Explore button open Add Friends page instead.
+// class SCHeaderButtonProviderHook: ClassHook<NSObject> {
+//   static let targetName = "SCHeaderButtonProvider"
 
-  //When the Explore button is tapped, don't run the original tap handeler, and instead call the handeler for the Add Friends button.
-  func didTapSearchHeaderButton(_ id: NSObject) {
-    let selector = NSSelectorFromString("didTapAddFriendsHeaderButton:")
+//   //When the Explore button is tapped, don't run the original tap handeler, and instead call the handeler for the Add Friends button.
+//   func didTapSearchHeaderButton(_ id: NSObject) {
+//     let selector = NSSelectorFromString("didTapAddFriendsHeaderButton:")
 
-    if target.responds(to: selector) {
-      let objcMethod = class_getInstanceMethod(type(of: target), selector)
+//     if target.responds(to: selector) {
+//       let objcMethod = class_getInstanceMethod(type(of: target), selector)
 
-      if objcMethod != nil {
-        let objc_msgSend = class_getMethodImplementation(type(of: target), selector)
+//       if objcMethod != nil {
+//         let objc_msgSend = class_getMethodImplementation(type(of: target), selector)
 
-        typealias objc_msgSend_t = @convention(c) (AnyObject, Selector, NSObject?) -> Void
-        let msgSend = unsafeBitCast(objc_msgSend, to: objc_msgSend_t.self)
+//         typealias objc_msgSend_t = @convention(c) (AnyObject, Selector, NSObject?) -> Void
+//         let msgSend = unsafeBitCast(objc_msgSend, to: objc_msgSend_t.self)
 
-        _ = msgSend(target, selector, nil)
-      }
-    }
-  }
-}
+//         _ = msgSend(target, selector, nil)
+//       }
+//     }
+//   }
+// }
 
-// Hide friends suggestions.
-class SCConversationFeedDataSourceHook: ClassHook<NSObject> {
-  // Lord I'm asking that this doesn't get me banned
-  // and that you would bless me as I try to honor
-  // you with what I see and do.
+// // Hide friends suggestions.
+// class SCConversationFeedDataSourceHook: ClassHook<NSObject> {
+//   // Lord I'm asking that this doesn't get me banned
+//   // and that you would bless me as I try to honor
+//   // you with what I see and do.
 
-  static let targetName = "SCConversationFeedDataSource"
+//   static let targetName = "SCConversationFeedDataSource"
 
-  func quickAddSnapchatters() -> NSArray {
-    return []
-  }
+//   func quickAddSnapchatters() -> NSArray {
+//     return []
+//   }
 
-  func incomingSnapchatters() -> NSArray {
-    return []
-  }
+//   func incomingSnapchatters() -> NSArray {
+//     return []
+//   }
 
-  func contactSnapchatters() -> NSArray {
-    return []
-  }
+//   func contactSnapchatters() -> NSArray {
+//     return []
+//   }
 
-  func contactNonSnapchatters() -> NSArray {
-    return []
-  }
-}
+//   func contactNonSnapchatters() -> NSArray {
+//     return []
+//   }
+// }
 
-//Prevent discover stories from showing after friend stories.
-class SCOperaPageViewControllerHook: ClassHook<UIViewController> {
-  static let targetName = "SCOperaPageViewController"
-  @Property(.nonatomic) var isDiscoverStory = false
+// //Prevent discover stories from showing after friend stories.
+// class SCOperaPageViewControllerHook: ClassHook<UIViewController> {
+//   static let targetName = "SCOperaPageViewController"
+//   @Property(.nonatomic) var isDiscoverStory = false
 
-  private func checkIfDiscoveryStory() {
-    if let page = target.value(forKey: "page") as? NSObject,
-      let properties = page.value(forKey: "properties") as? NSObject
-    {
-      NSLog("SBTWEAK: Got page \(page) properties \(properties)")
+//   private func checkIfDiscoveryStory() {
+//     if let page = target.value(forKey: "page") as? NSObject,
+//       let properties = page.value(forKey: "properties") as? NSObject
+//     {
+//       NSLog("SBTWEAK: Got page \(page) properties \(properties)")
 
-      if properties.value(forKey: "discover_story_composite_id") != nil {
-        isDiscoverStory = true
+//       if properties.value(forKey: "discover_story_composite_id") != nil {
+//         isDiscoverStory = true
 
-      } else {
-        NSLog("SBTWEAK: Friend story")
-      }
-    } else {
-      NSLog("SBTWEAK: Couldn't get page")
-    }
+//       } else {
+//         NSLog("SBTWEAK: Friend story")
+//       }
+//     } else {
+//       NSLog("SBTWEAK: Couldn't get page")
+//     }
 
-  }
+//   }
 
-  private func dismissStory() {
-    if let parentVC = target.parent {
-      NSLog("SBTWEAK: parentVC \(parentVC)")
+//   private func dismissStory() {
+//     if let parentVC = target.parent {
+//       NSLog("SBTWEAK: parentVC \(parentVC)")
 
-      let selector = NSSelectorFromString("navigationManagerShouldDismiss:")
+//       let selector = NSSelectorFromString("navigationManagerShouldDismiss:")
 
-      if parentVC.responds(to: selector) {
-        NSLog("SBTWErAK: Responds")
+//       if parentVC.responds(to: selector) {
+//         NSLog("SBTWErAK: Responds")
 
-        let objcMethod = class_getInstanceMethod(type(of: parentVC), selector)
+//         let objcMethod = class_getInstanceMethod(type(of: parentVC), selector)
 
-        if objcMethod != nil {
-          NSLog("SBTWErAK: bout to send")
+//         if objcMethod != nil {
+//           NSLog("SBTWErAK: bout to send")
 
-          let objc_msgSend = class_getMethodImplementation(type(of: parentVC), selector)
+//           let objc_msgSend = class_getMethodImplementation(type(of: parentVC), selector)
 
-          typealias objc_msgSend_t = @convention(c) (AnyObject, Selector, NSObject?) -> Void
-          let msgSend = unsafeBitCast(objc_msgSend, to: objc_msgSend_t.self)
+//           typealias objc_msgSend_t = @convention(c) (AnyObject, Selector, NSObject?) -> Void
+//           let msgSend = unsafeBitCast(objc_msgSend, to: objc_msgSend_t.self)
 
-          _ = msgSend(parentVC, selector, nil)
-        }
-      } else {
-        NSLog(
-          "SBTWEAK: Parent view controller does not respond to navigationManagerShouldDismiss")
-      }
+//           _ = msgSend(parentVC, selector, nil)
+//         }
+//       } else {
+//         NSLog(
+//           "SBTWEAK: Parent view controller does not respond to navigationManagerShouldDismiss")
+//       }
 
-    } else {
-      NSLog("SBTWEAK: Couldn't get parentvc")
+//     } else {
+//       NSLog("SBTWEAK: Couldn't get parentvc")
 
-    }
+//     }
 
-  }
+//   }
 
-  func viewDidLoad() {
-    orig.viewDidLoad()
+//   func viewDidLoad() {
+//     orig.viewDidLoad()
 
-    checkIfDiscoveryStory()
+//     checkIfDiscoveryStory()
 
-    //Hide the view if it's a discovery story, otherwise you can see the story for a moment when swiping.
-    if isDiscoverStory {
-      target.view.isHidden = true
-    }
-  }
+//     //Hide the view if it's a discovery story, otherwise you can see the story for a moment when swiping.
+//     if isDiscoverStory {
+//       target.view.isHidden = true
+//     }
+//   }
 
-  func viewDidFullyAppear() {
-    orig.viewDidFullyAppear()
+//   func viewDidFullyAppear() {
+//     orig.viewDidFullyAppear()
 
-    //Dismiss the story view if the story is a discover story.
-    if isDiscoverStory {
-      dismissStory()
-    }
-  }
-}
+//     //Dismiss the story view if the story is a discover story.
+//     if isDiscoverStory {
+//       dismissStory()
+//     }
+//   }
+// }
 
 //Hide spinner for discover stories section.
 class SCDiscoverFeedLoadingViewCellHook: ClassHook<UIView> {
@@ -228,6 +232,10 @@ class SCDiscoverFeedLoadingViewCellHook: ClassHook<UIView> {
     target.isHidden = true
   }
 }
+
+
+
+
 
 
 
